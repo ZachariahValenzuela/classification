@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -61,7 +61,38 @@ class MiraClassifier:
         representing a vector of values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        maxAcc = 0
+        k = 0.0
+        for C in Cgrid:
+            weights = self.weights.copy()
+
+            for iteration in range(self.max_iterations):
+                print "Iteration {} for C : {}".format(iteration, C)
+                for i in range(len(trainingData)):
+                    score = util.Counter()
+                    for label in self.legalLabels:
+                        score[label] = weights[label] * trainingData[i]
+                    maxScoreLabel = score.argMax()
+
+                    if maxScoreLabel != trainingLabels[i]:
+                        k = (weights[maxScoreLabel] - weights[trainingLabels[i]]) * trainingData[i]
+                        k = (k + 1.0) / (2.0 * (trainingData[i] * trainingData[i]))
+                        k = min(C/10.0, k)
+
+                        x = trainingData[i].copy()
+                        x.divideAll(1.0 / k)
+                        weights[maxScoreLabel] = weights[maxScoreLabel] - x
+                        weights[trainingLabels[i]] = weights[trainingLabels[i]] + x
+            acc = 0;
+            for i in range(len(validationData)):
+                score = util.Counter()
+                for label in self.legalLabels:
+                    score[label] = weights[label] * validationData[i]
+                maxScoreLabel = score.argMax()
+                acc += 1 if maxScoreLabel == validationLabels[i] else 0
+            if acc > maxAcc:
+                maxAcc = acc
+                self.weights = weights
 
     def classify(self, data ):
         """
@@ -77,5 +108,3 @@ class MiraClassifier:
                 vectors[l] = self.weights[l] * datum
             guesses.append(vectors.argMax())
         return guesses
-
-
